@@ -150,7 +150,7 @@ Most formatting and common issues are automatically fixed by Biome. Run `npm exe
 ### CI/CD
 
 - Every job that runs `bun` commands needs `oven-sh/setup-bun@v2` step — even if other setup steps exist (e.g., android-build job needs both Java and Bun).
-- Pin GitHub Actions to commit SHAs (not version tags) for immutability/security. Use `gh api repos/OWNER/REPO/git/refs/tags/TAG --jq '.object.sha'` to resolve.
+- Pin GitHub Actions to commit SHAs (not version tags) for immutability/security. Resolve with: `gh api repos/OWNER/REPO/commits/TAG --jq '.sha'` (uses the commits API which resolves tags to commit SHAs correctly).
 
 ### Claude Code
 
