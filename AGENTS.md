@@ -133,7 +133,7 @@ Most formatting and common issues are automatically fixed by Biome. Run `npm exe
 
 ### React Native Setup
 
-- `metro.config.js` is CommonJS. Use `__dirname` — `import.meta.dirname` only works in ESM.
+- `metro.config.cjs` uses CommonJS. The `.cjs` extension ensures Node.js treats it as CommonJS, allowing `__dirname` to work correctly. ESM's `import.meta.dirname` only works in `.mjs` files or projects with `"type": "module"`.
 - Minimum Android is 7.0 (API 24), not 5.0. The widget requires API 24+.
 
 ### Pre-commit Hooks
