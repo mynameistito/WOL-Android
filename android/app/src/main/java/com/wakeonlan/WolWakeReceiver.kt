@@ -1,0 +1,79 @@
+// android/app/src/main/java/com/wakeonlan/WolWakeReceiver.kt
+package com.wakeonlan
+
+import android.appwidget.AppWidgetManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import java.io.IOException
+import java.net.DatagramPacket
+import java.net.DatagramSocket
+import java.net.InetAddress
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+class WolWakeReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != WolWidget.ACTION_WAKE) return
+        val widgetId = intent.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID,
+        )
+        val prefs = context.getSharedPreferences(WolWidget.PREFS_NAME, Context.MODE_PRIVATE)
+        val mac = prefs.getString("wol_mac", null)
+        if (mac.isNullOrEmpty()) return
+        val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
+val pendingResult = goAsync()
+        sendWakePacket(context, mac, prefs, currentTime) { success ->
+            if (success) {
+                WolWidget.updateWidgetStatic(context, widgetId, currentTime)
+            }
+            pendingResult.finish()
+        }
+    }
+private fun sendWakePacket(
+        context: Context,
+        mac: String,
+        prefs: android.content.SharedPreferences,
+        currentTime: String,
+        onComplete: (Boolean) -> Unit,
+    ) {
+        val broadcast = prefs.getString("wol_broadcastAddress", "255.255.255.255") ?: "255.255.255.255"
+        val port = prefs.getString("wol_port", "9")?.toIntOrNull() ?: 9
+Thread {
+            var socket: DatagramSocket? = null
+            try {
+                val cleanMac = mac.replace(":", "").replace("-", "")
+                if (cleanMac.length != 12 || !cleanMac.all { it.digitToIntOrNull(16) != null }) {
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        onComplete(false)
+                    }
+                    return@Thread
+                }
+val macBytes = cleanMac.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+                val packet = ByteArray(102)
+                for (i in 0..5) packet[i] = 0xFF.toByte()
+                for (i in 0..15) {
+                    System.arraycopy(macBytes, 0, packet, 6 + i * 6, 6)
+                }
+socket = DatagramSocket()
+                socket.broadcast = true
+                val address = InetAddress.getByName(broadcast)
+                val dp = DatagramPacket(packet, packet.size, address, port)
+                socket.send(dp)
+prefs.edit().putString("wol_last_woken", currentTime).apply()
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    onComplete(true)
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    onComplete(false)
+                }
+            } finally {
+                socket?.close()
+            }
+        }.start()
+    }
+}
