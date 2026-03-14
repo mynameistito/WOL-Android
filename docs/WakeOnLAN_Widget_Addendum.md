@@ -166,113 +166,143 @@ Also create a widget background drawable:
 // android/app/src/main/java/com/wakeonlan/WolWidget.kt
 package com.wakeonlan
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.app.PendingIntent
 import android.widget.RemoteViews
-import android.content.SharedPreferences
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.InetAddress
-import java.text.SimpleDateFormat
-import java.util.*
 
 class WolWidget : AppWidgetProvider() {
-
     companion object {
         const val ACTION_WAKE = "com.wakeonlan.ACTION_WAKE"
-        const val PREFS_NAME = "com.wakeonlan_preferences"  // must match RN app's prefs file
+        const val PREFS_NAME = "com.wakeonlan_preferences"
+
+        fun updateWidgetStatic(context: Context, widgetId: Int, lastWokenOverride: String?) {
+            val manager = AppWidgetManager.getInstance(context)
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val deviceName = prefs.getString("wol_name", context.getString(R.string.widget_no_device))
+                ?: context.getString(R.string.widget_no_device)
+            val lastWoken = lastWokenOverride ?: prefs.getString("wol_last_woken", "") ?: ""
+
+            val views = RemoteViews(context.packageName, R.layout.wol_widget)
+            views.setTextViewText(R.id.widget_device_name, deviceName)
+            views.setTextViewText(
+                R.id.widget_last_woken,
+                if (lastWoken.isNotEmpty()) "Last woken: $lastWoken" else "",
+            )
+
+            // Wire up the wake button - targets WolWakeReceiver, not WolWidget
+            val intent = Intent(context, WolWakeReceiver::class.java).apply {
+                action = ACTION_WAKE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+            }
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                widgetId,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            views.setOnClickPendingIntent(R.id.widget_wake_button, pendingIntent)
+
+            manager.updateAppWidget(widgetId, views)
+        }
     }
 
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
+        appWidgetIds: IntArray,
     ) {
         for (id in appWidgetIds) {
-            updateWidget(context, appWidgetManager, id)
+            updateWidgetStatic(context, id, null)
+        }
+    }
+}
+```
+
+### Wake Receiver — `WolWakeReceiver.kt`
+
+The wake action is handled by a separate receiver with signature permission for security:
+
+```kotlin
+// android/app/src/main/java/com/wakeonlan/WolWakeReceiver.kt
+package com.wakeonlan
+
+import android.appwidget.AppWidgetManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import java.io.IOException
+import java.net.DatagramPacket
+import java.net.DatagramSocket
+import java.net.InetAddress
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+class WolWakeReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != WolWidget.ACTION_WAKE) return
+        val widgetId = intent.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID,
+        )
+        val prefs = context.getSharedPreferences(WolWidget.PREFS_NAME, Context.MODE_PRIVATE)
+        val mac = prefs.getString("wol_mac", null)
+        if (mac.isNullOrEmpty()) return
+        val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
+        val pendingResult = goAsync()
+        sendWakePacket(context, mac, prefs, currentTime) { success ->
+            if (success) {
+                WolWidget.updateWidgetStatic(context, widgetId, currentTime)
+            }
+            pendingResult.finish()
         }
     }
 
-override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-        if (intent.action == ACTION_WAKE) {
-            val widgetId = intent.getIntExtra(
-                AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID
-            )
-            val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-            sendWakePacket(context, currentTime)
-            val manager = AppWidgetManager.getInstance(context)
-            // Pass currentTime so widget shows timestamp immediately
-            updateWidget(context, manager, widgetId, currentTime)
-        }
-    }
-
-    private fun updateWidget(
+    private fun sendWakePacket(
         context: Context,
-        manager: AppWidgetManager,
-        widgetId: Int,
-        lastWokenOverride: String? = null
+        mac: String,
+        prefs: android.content.SharedPreferences,
+        currentTime: String,
+        onComplete: (Boolean) -> Unit,
     ) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val deviceName = prefs.getString("wol_name", "No device saved") ?: "No device saved"
-        val lastWoken = lastWokenOverride ?: prefs.getString("wol_last_woken", "") ?: ""
-
-        val views = RemoteViews(context.packageName, R.layout.wol_widget)
-        views.setTextViewText(R.id.widget_device_name, deviceName)
-        views.setTextViewText(
-            R.id.widget_last_woken,
-            if (lastWoken.isNotEmpty()) "Last woken: $lastWoken" else ""
-        )
-
-        // Wire up the wake button
-        val intent = Intent(context, WolWidget::class.java).apply {
-            action = ACTION_WAKE
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-        }
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, widgetId, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.widget_wake_button, pendingIntent)
-
-        manager.updateAppWidget(widgetId, views)
-    }
-
-    private fun sendWakePacket(context: Context, currentTime: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val mac = prefs.getString("wol_mac", null) ?: return
         val broadcast = prefs.getString("wol_broadcastAddress", "255.255.255.255") ?: "255.255.255.255"
-        // react-native-default-preference stores all values as Strings
         val port = prefs.getString("wol_port", "9")?.toIntOrNull() ?: 9
 
         Thread {
+            var socket: DatagramSocket? = null
             try {
-                val macBytes = mac.replace(":", "").replace("-", "")
-                    .chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-
+                val cleanMac = mac.replace(":", "").replace("-", "")
+                if (cleanMac.length != 12 || !cleanMac.all { it.digitToIntOrNull(16) != null }) {
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        onComplete(false)
+                    }
+                    return@Thread
+                }
+                val macBytes = cleanMac.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
                 val packet = ByteArray(102)
                 for (i in 0..5) packet[i] = 0xFF.toByte()
                 for (i in 0..15) {
                     System.arraycopy(macBytes, 0, packet, 6 + i * 6, 6)
                 }
-
-                val socket = DatagramSocket()
+                socket = DatagramSocket()
                 socket.broadcast = true
                 val address = InetAddress.getByName(broadcast)
                 val dp = DatagramPacket(packet, packet.size, address, port)
                 socket.send(dp)
-                socket.close()
-
-                // Save last woken timestamp
-                val time = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
                 prefs.edit().putString("wol_last_woken", currentTime).apply()
-
-            } catch (e: Exception) {
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    onComplete(true)
+                }
+            } catch (e: IOException) {
                 e.printStackTrace()
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    onComplete(false)
+                }
+            } finally {
+                socket?.close()
             }
         }.start()
     }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  NativeModules,
   ScrollView,
   StyleSheet,
   Text,
@@ -92,6 +93,7 @@ export default function WakeOnLanScreen() {
     setConfig(updatedConfig);
     try {
       await saveConfig(updatedConfig);
+      NativeModules.WolWidgetModule?.refreshWidget?.();
       return normalized;
     } catch {
       setMacError("Failed to save configuration");

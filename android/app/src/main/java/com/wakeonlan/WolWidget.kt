@@ -8,10 +8,12 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 
-class WolWidget : AppWidgetProvider() {companion object {
+class WolWidget : AppWidgetProvider() {
+    companion object {
         const val ACTION_WAKE = "com.wakeonlan.ACTION_WAKE"
         const val PREFS_NAME = "com.wakeonlan_preferences"
-fun updateWidgetStatic(context: Context, widgetId: Int, lastWokenOverride: String?) {
+
+        fun updateWidgetStatic(context: Context, widgetId: Int, lastWokenOverride: String?) {
             val manager = AppWidgetManager.getInstance(context)
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val deviceName = prefs.getString("wol_name", context.getString(R.string.widget_no_device)) ?: context.getString(R.string.widget_no_device)

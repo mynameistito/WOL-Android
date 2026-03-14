@@ -25,7 +25,7 @@ class WolWakeReceiver : BroadcastReceiver() {
         if (mac.isNullOrEmpty()) return
         val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
 val pendingResult = goAsync()
-        sendWakePacket(context, prefs, currentTime) { success ->
+        sendWakePacket(context, mac, prefs, currentTime) { success ->
             if (success) {
                 WolWidget.updateWidgetStatic(context, widgetId, currentTime)
             }
@@ -34,11 +34,11 @@ val pendingResult = goAsync()
     }
 private fun sendWakePacket(
         context: Context,
+        mac: String,
         prefs: android.content.SharedPreferences,
         currentTime: String,
         onComplete: (Boolean) -> Unit,
     ) {
-        val mac = prefs.getString("wol_mac", null)!!
         val broadcast = prefs.getString("wol_broadcastAddress", "255.255.255.255") ?: "255.255.255.255"
         val port = prefs.getString("wol_port", "9")?.toIntOrNull() ?: 9
 Thread {
@@ -46,6 +46,9 @@ Thread {
             try {
                 val cleanMac = mac.replace(":", "").replace("-", "")
                 if (cleanMac.length != 12 || !cleanMac.all { it.digitToIntOrNull(16) != null }) {
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        onComplete(false)
+                    }
                     return@Thread
                 }
 val macBytes = cleanMac.chunked(2).map { it.toInt(16).toByte() }.toByteArray()

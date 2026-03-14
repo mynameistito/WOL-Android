@@ -26,6 +26,7 @@
 ## BroadcastReceiver
 
 - `goAsync()` must be paired with `pendingResult.finish()` on **every** code path. If a callback has early returns, ensure `finish()` is called even when skipping the main work — otherwise the pending result leaks and Android eventually kills the process.
+- When passing validated SharedPreferences values to async helper functions, pass the value directly rather than re-reading with `!!`. The `!!` appears safe due to upstream validation but is fragile if the call flow changes.
 
 ## Network Operations
 

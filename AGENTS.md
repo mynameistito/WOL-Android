@@ -105,7 +105,7 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 - Avoid done callbacks in async tests - use async/await instead
 - Don't use `.only` or `.skip` in committed code
 - Keep test suites reasonably flat - avoid excessive `describe` nesting
-- Wrap `react-test-renderer` component creation in `act()` and unmount in cleanup — even simple renders fail in CI without it.
+- `react-test-renderer` is deprecated in React 19. Use `@testing-library/react` for non-native React apps. Wrap renders in `act()` and unmount in cleanup — even simple renders fail in CI without it.
 
 ## When Biome Can't Help
 
