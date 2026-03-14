@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const SEMVER_REGEX = /^(\d+)\.(\d+)\.(\d+)$/;
+const SEMVER_REGEX = /^(\d+)\.(\d+)\.(\d+)/;
 const VERSION_CODE_REGEX = /versionCode\s+\d+/;
 const VERSION_NAME_REGEX = /versionName\s+["'][^"']+["']/;
 

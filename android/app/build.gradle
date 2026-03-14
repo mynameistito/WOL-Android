@@ -114,8 +114,6 @@ android {
         release {
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
-            } else {
-                throw new GradleException("Release keystore configuration not found. Ensure keystore.properties exists for release builds.")
             }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"

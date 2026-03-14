@@ -35,3 +35,9 @@
 - Validate MAC address format (12 hex chars) before parsing. `String.toInt(16)` throws on invalid hex.
 - For hex validation, `String.digitToIntOrNull(16)` alone is sufficient — `isLetterOrDigit()` is redundant.
 - Widget updates from background threads require callbacks. Pass a lambda to the background function and invoke `runOnUiThread` or update directly since widget runs on main looper.
+
+## Signing Configuration
+
+- Release signing should be conditional: if `keystore.properties` exists, use release keystore; otherwise leave unsigned.
+- Never fall back to debug keystore for release builds — unsigned is safer than debug-signed.
+- Errors thrown during Gradle configuration phase affect ALL build types. Use `afterEvaluate { tasks.matching { ... }.configureEach { doFirst { ... } } }` for execution-phase checks, or use conditional signing config assignment instead of throwing.
