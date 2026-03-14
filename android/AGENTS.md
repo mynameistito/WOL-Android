@@ -8,9 +8,12 @@
 ## AppWidget
 
 - AppWidgets do NOT auto-refresh when SharedPreferences changes. Must call `AppWidgetManager.updateAppWidget()` explicitly after config changes.
-- Exported receivers with custom broadcast actions are callable by any app. Use signature-level permissions: `<permission android:name="..." android:protectionLevel="signature" />`
 - When rebuilding RemoteViews programmatically (e.g., in `onUpdate` or a refresh method), all click listeners are lost. Always reattach `PendingIntent` with `setOnClickPendingIntent` on every update.
-- Secure exported receivers with signature permissions by adding both the `<permission>` declaration AND `android:permission="..."` attribute on the `<receiver>` tag.
+- **CRITICAL**: Never apply `android:permission` to an AppWidgetProvider receiver. System broadcasts like `APPWIDGET_UPDATE` come from the Android system, which doesn't hold your app's signature permission. Use a separate receiver for custom broadcasts that need protection:
+  - `WolWidget` (AppWidgetProvider): No permission, handles `APPWIDGET_UPDATE` from system
+  - `WolWakeReceiver` (BroadcastReceiver): Signature permission, handles custom `ACTION_WAKE` from PendingIntent
+- PendingIntents created by your app execute with your app's identity, passing signature permission checks even when triggered by the system (e.g., widget button clicks).
+- `WolWidget`'s PendingIntent targets `WolWakeReceiver`, not itself. Modifying the wake action requires updating both `ACTION_WAKE` constant in `WolWidget.kt` and the intent-filter in `AndroidManifest.xml`.
 
 ## React Native Native Modules
 

@@ -33,15 +33,22 @@
 
       <receiver
           android:name=".WolWidget"
-          android:exported="true"
-          android:permission="com.wakeonlan.permission.SEND_WAKE">
+          android:exported="true">
           <intent-filter>
               <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-              <action android:name="com.wakeonlan.ACTION_WAKE" />
           </intent-filter>
           <meta-data
               android:name="android.appwidget.provider"
               android:resource="@xml/wol_widget_info" />
+      </receiver>
+
+      <receiver
+          android:name=".WolWakeReceiver"
+          android:exported="true"
+          android:permission="com.wakeonlan.permission.SEND_WAKE">
+          <intent-filter>
+              <action android:name="com.wakeonlan.ACTION_WAKE" />
+          </intent-filter>
       </receiver>
     </application>
 </manifest>
