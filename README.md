@@ -42,7 +42,11 @@ Follow the [React Native environment setup](https://reactnative.dev/docs/set-up-
 **Note:** This project uses [Bun](https://bun.sh) as the package manager. Install it first:
 
 ```bash
+# macOS/Linux/WSL
 curl -fsSL https://bun.sh/install | bash
+
+# Windows (PowerShell)
+irm bun.sh/install.ps1 | iex
 ```
 
 ### Installation

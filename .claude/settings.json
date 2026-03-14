@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun run fix -- {{VALID_FILES}}"
+            "command": "bun run fix"
           }
         ]
       }

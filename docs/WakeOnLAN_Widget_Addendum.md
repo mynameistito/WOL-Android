@@ -372,6 +372,18 @@ companion object {
             R.id.widget_last_woken,
             if (lastWoken.isNotEmpty()) "Last woken: $lastWoken" else ""
         )
+
+        // Reattach the wake button PendingIntent (required on every refresh)
+        val intent = Intent(context, WolWidget::class.java).apply {
+            action = ACTION_WAKE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, widgetId, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.widget_wake_button, pendingIntent)
+
         manager.updateAppWidget(widgetId, views)
     }
 }
@@ -416,14 +428,23 @@ class WolWidgetPackage : ReactPackage {
 }
 ````
 
-Then register this package in your `MainApplication.kt`:
+Then register this package in your `MainApplication.kt`. Use the `DefaultNewArchitectureEntryPoint` pattern to preserve autolinked packages:
 
 ```kotlin
 override fun getPackages(): List<ReactPackage> {
-    return listOf(
-        MainReactPackage(),
-        WolWidgetPackage()  // Add this
-    )
+    return PackageList(this).packages.apply {
+        add(WolWidgetPackage())  // Add this to preserve autolinked modules
+    }
+}
+```
+
+Or if using the new architecture directly:
+
+```kotlin
+override fun getPackages(): List<ReactPackage> {
+    val packages = PackageList(this).packages.toMutableList()
+    packages.add(WolWidgetPackage())
+    return packages
 }
 ```
 
@@ -439,7 +460,7 @@ override fun getPackages(): List<ReactPackage> {
     "react": "19.2.3",
     "react-native": "0.84.1",
     "react-native-udp": "^4.1.7",
-    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "react-native-vector-icons": "^10.x",
     "react-native-default-preference": "^1.4.4"
   }

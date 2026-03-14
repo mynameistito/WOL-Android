@@ -44,7 +44,7 @@ export default function WakeOnLanScreen() {
     loadConfig()
       .then((saved) => {
         if (saved) {
-          setConfig(saved);
+          setConfig({ ...DEFAULT_CONFIG, ...saved });
         }
       })
       .catch(() => {
@@ -90,8 +90,13 @@ export default function WakeOnLanScreen() {
     const normalized = normalizeMac(config.mac);
     const updatedConfig = { ...config, mac: normalized };
     setConfig(updatedConfig);
-    await saveConfig(updatedConfig);
-    return normalized;
+    try {
+      await saveConfig(updatedConfig);
+      return normalized;
+    } catch {
+      setMacError("Failed to save configuration");
+      return null;
+    }
   };
 
   const handleSave = async () => {

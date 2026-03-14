@@ -9,6 +9,12 @@
 
 - AppWidgets do NOT auto-refresh when SharedPreferences changes. Must call `AppWidgetManager.updateAppWidget()` explicitly after config changes.
 - Exported receivers with custom broadcast actions are callable by any app. Use signature-level permissions: `<permission android:name="..." android:protectionLevel="signature" />`
+- When rebuilding RemoteViews programmatically (e.g., in `onUpdate` or a refresh method), all click listeners are lost. Always reattach `PendingIntent` with `setOnClickPendingIntent` on every update.
+- Secure exported receivers with signature permissions by adding both the `<permission>` declaration AND `android:permission="..."` attribute on the `<receiver>` tag.
+
+## React Native Native Modules
+
+- Custom native modules must be added to the package list without replacing autolinked packages. Use `PackageList(this).packages.apply { add(MyPackage()) }` or `PackageList(this).packages.toMutableList().apply { add(MyPackage()) }`.
 
 ## Strings
 

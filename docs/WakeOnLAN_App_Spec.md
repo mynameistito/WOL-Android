@@ -69,7 +69,7 @@ Install these **in order** on your Windows PC before starting.
 ### 2.4 Set ANDROID_HOME environment variable
 
 - Variable name: `ANDROID_HOME`
-- Value: `C:\Users\mynameistito\AppData\Local\Android\Sdk`
+- Value: `C:\Users\<username>\AppData\Local\Android\Sdk`
 - Also add to `Path`:
   - `%ANDROID_HOME%\platform-tools`
   - `%ANDROID_HOME%\tools`

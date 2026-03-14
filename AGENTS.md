@@ -83,7 +83,7 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 - Use top-level regex literals instead of creating them in loops
 - Prefer specific imports over namespace imports
 - Avoid barrel files (index files that re-export everything)
-- Use proper image components (e.g., Next.js `<Image>`) over `<img>` tags
+- Use proper image components (e.g., React Native `<Image>`) over basic elements
 
 ### Framework-Specific Guidance
 
@@ -144,7 +144,13 @@ Most formatting and common issues are automatically fixed by Biome. Run `npm exe
 ### Dependency Management
 
 - `bun.lockb` must be tracked in git for reproducible builds. Removing it breaks `bun install` determinism.
+- `@types/*` packages belong in `devDependencies`, not `dependencies`. They're compile-time only.
+- Pin dev snapshot versions (e.g., `7.0.0-dev.20260313.1`) without `^` prefix — snapshots are mutable and can break reproducibility.
 
 ### CI/CD
 
 - Every job that runs `bun` commands needs `oven-sh/setup-bun@v2` step — even if other setup steps exist (e.g., android-build job needs both Java and Bun).
+
+### Claude Code
+
+- Command hooks in `.claude/settings.json` do not support `{{VALID_FILES}}` placeholder. Use project-wide commands without file arguments.
