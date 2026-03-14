@@ -11,8 +11,9 @@
     "typecheck": "tsgo --noEmit",
     "prepare": "lefthook install",
     "changeset": "changeset",
-    "version": "changeset version",
-    "release": "changeset tag"
+    "version": "changeset version && bun run sync-version",
+    "release": "changeset tag",
+    "sync-version": "bun run scripts/sync-version.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
