@@ -58,7 +58,7 @@ Android Widget (Kotlin)
 
 ## New Files to Create
 
-```
+```text
 android/app/src/main/
 ├── java/com/wakeonlan/
 │   ├── WolWidget.kt              ← AppWidgetProvider (handles button tap + sends WoL)
@@ -306,13 +306,13 @@ Inside the `<application>` tag, add:
 Update `src/utils/storage.ts` to also write config to SharedPreferences so the widget can read it:
 
 ```typescript
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import DefaultPreference from 'react-native-default-preference';
-import { DeviceConfig } from '../types';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import DefaultPreference from "react-native-default-preference";
+import { DeviceConfig } from "../types";
 
-const STORAGE_KEY = '@wol_device_config';
+const STORAGE_KEY = "@wol_device_config";
 // Must match PREFS_NAME in WolWidget.kt
-const PREFS_GROUP = 'com.wakeonlan_preferences';
+const PREFS_GROUP = "com.wakeonlan_preferences";
 
 export async function saveConfig(config: DeviceConfig): Promise<void> {
   // Save to AsyncStorage (for the app UI)
@@ -320,10 +320,10 @@ export async function saveConfig(config: DeviceConfig): Promise<void> {
 
   // Also write individual fields to SharedPreferences (for the widget)
   await DefaultPreference.setName(PREFS_GROUP);
-  await DefaultPreference.set('wol_name', config.name);
-  await DefaultPreference.set('wol_mac', config.mac);
-  await DefaultPreference.set('wol_broadcastAddress', config.broadcastAddress);
-  await DefaultPreference.set('wol_port', config.port);
+  await DefaultPreference.set("wol_name", config.name);
+  await DefaultPreference.set("wol_mac", config.mac);
+  await DefaultPreference.set("wol_broadcastAddress", config.broadcastAddress);
+  await DefaultPreference.set("wol_port", config.port);
 }
 
 export async function loadConfig(): Promise<DeviceConfig | null> {
@@ -340,7 +340,7 @@ After saving config in the app, you should trigger a widget refresh so it displa
 
 ```typescript
 // In WakeOnLanScreen.tsx, after saveConfig():
-import { NativeModules } from 'react-native';
+import { NativeModules } from "react-native";
 
 // After saving config,refresh the widget
 NativeModules.WolWidgetModule?.refreshWidget();
@@ -356,15 +356,30 @@ companion object {
             android.content.ComponentName(context, WolWidget::class.java)
         )
         for (id in ids) {
-            updateWidget(context, manager, id)
+            updateAllWidgets(context, manager, id)  // Call static helper
         }
+    }
+
+    // Static helper that accepts all parameters
+    fun updateAllWidgets(context: Context, manager: AppWidgetManager, widgetId: Int) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val deviceName = prefs.getString("wol_name", "No device saved") ?: "No device saved"
+        val lastWoken = prefs.getString("wol_last_woken", "") ?: ""
+
+        val views = RemoteViews(context.packageName, R.layout.wol_widget)
+        views.setTextViewText(R.id.widget_device_name, deviceName)
+        views.setTextViewText(
+            R.id.widget_last_woken,
+            if (lastWoken.isNotEmpty()) "Last woken: $lastWoken" else ""
+        )
+        manager.updateAppWidget(widgetId, views)
     }
 }
 ```
 
 And create WolWidgetModule.kt as a React Native bridge:
 
-```kotlin
+````kotlin
 package com.wakeonlan
 
 import com.facebook.react.bridge.ReactApplicationContext
@@ -379,6 +394,37 @@ class WolWidgetModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         WolWidget.updateAllWidgets(reactApplicationContext)
     }
 }
+
+And register it with a package:
+
+```kotlin
+package com.wakeonlan
+
+import com.facebook.react.ReactPackage
+import com.facebook.react.bridge.NativeModule
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.uimanager.ViewManager
+
+class WolWidgetPackage : ReactPackage {
+    override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
+        return listOf(WolWidgetModule(reactContext))
+    }
+
+    override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
+        return emptyList()
+    }
+}
+````
+
+Then register this package in your `MainApplication.kt`:
+
+```kotlin
+override fun getPackages(): List<ReactPackage> {
+    return listOf(
+        MainReactPackage(),
+        WolWidgetPackage()  // Add this
+    )
+}
 ```
 
 **Note:** AppWidgets do NOT auto-refresh when SharedPreferences changes. You must call `AppWidgetManager.updateAppWidget()` explicitly.
@@ -390,8 +436,8 @@ class WolWidgetModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 ```json
 {
   "dependencies": {
-    "react": "18.x",
-    "react-native": "0.74.x",
+    "react": "19.2.3",
+    "react-native": "0.84.1",
     "react-native-udp": "^4.1.7",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "react-native-vector-icons": "^10.x",

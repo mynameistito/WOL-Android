@@ -2,6 +2,14 @@ import { jest } from "@jest/globals";
 
 const store = {};
 
+export const __resetStore = () => {
+  for (const key of Object.keys(store)) {
+    delete store[key];
+  }
+};
+
+export const __getStore = () => store;
+
 export default {
   setName: jest.fn().mockResolvedValue(undefined),
   set: jest.fn((key, value) => {

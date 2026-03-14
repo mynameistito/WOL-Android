@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import java.io.IOException
+import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.text.SimpleDateFormat
@@ -38,10 +39,20 @@ class WolWidget : AppWidgetProvider() {
                 AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID,
             )
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val mac = prefs.getString("wol_mac", null)
+
+            if (mac.isNullOrEmpty()) {
+                return
+            }
+
             val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-            sendWakePacket(context, currentTime)
-            val manager = AppWidgetManager.getInstance(context)
-            updateWidget(context, manager, widgetId, currentTime)
+            sendWakePacket(context, currentTime) { success ->
+                val manager = AppWidgetManager.getInstance(context)
+                if (success) {
+                    updateWidget(context, manager, widgetId, currentTime)
+                }
+            }
         }
     }
 
@@ -78,25 +89,22 @@ class WolWidget : AppWidgetProvider() {
         manager.updateAppWidget(widgetId, views)
     }
 
-    private fun sendWakePacket(context: Context, currentTime: String) {
+    private fun sendWakePacket(context: Context, currentTime: String, onComplete: (Boolean) -> Unit) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val mac = prefs.getString("wol_mac", null) ?: return
         val broadcast = prefs.getString("wol_broadcastAddress", "255.255.255.255") ?: "255.255.255.255"
-        // react-native-default-preference stores all values as Strings
         val port = prefs.getString("wol_port", "9")?.toIntOrNull() ?: 9
 
         Thread {
             var socket: DatagramSocket? = null
             try {
-                // Validate MAC address format
                 val cleanMac = mac.replace(":", "").replace("-", "")
-                if (cleanMac.length != 12 || !cleanMac.all { it.isLetterOrDigit() && it.digitToIntOrNull(16) != null }) {
+                if (cleanMac.length != 12 || !cleanMac.all { it.digitToIntOrNull(16) != null }) {
                     return@Thread
                 }
 
                 val macBytes = cleanMac.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 
-                // Build 102-byte magic packet: 6×0xFF +MAC×16
                 val packet = ByteArray(102)
                 for (i in 0..5) packet[i] = 0xFF.toByte()
                 for (i in 0..15) {
@@ -104,16 +112,17 @@ class WolWidget : AppWidgetProvider() {
                 }
 
                 socket = DatagramSocket()
-                socket?.broadcast = true
+                socket.broadcast = true
                 val address = InetAddress.getByName(broadcast)
                 val dp = DatagramPacket(packet, packet.size, address, port)
-                socket?.send(dp)
+                socket.send(dp)
 
-                // Persist last-woken timestamp for the widget display
                 prefs.edit().putString("wol_last_woken", currentTime).apply()
+                onComplete(true)
 
             } catch (e: IOException) {
                 e.printStackTrace()
+                onComplete(false)
             } finally {
                 socket?.close()
             }

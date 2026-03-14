@@ -12,3 +12,11 @@
 ## MAC Address Handling
 
 - `normalizeMac()` should validate length (12 chars after stripping) before formatting. Invalid input should return the original string, not malformed output.
+
+## UI Components
+
+- `SafeAreaView` from `react-native` is deprecated. Use `SafeAreaView` from `react-native-safe-area-context` (already installed).
+
+## Network Operations
+
+- Create sockets after successful packet construction. If the socket is created before and packet building fails, the socket may leak or need explicit cleanup.

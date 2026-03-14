@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import DeviceForm from "../components/device-form.tsx";
 import StatusIndicator, {
   type Status,
@@ -19,6 +19,11 @@ import { sendWakePacket } from "../utils/udp-send.ts";
 
 const MAC_STRIP_REGEX = /[:-]/g;
 const MAC_VALID_REGEX = /^[0-9A-Fa-f]+$/;
+
+function validateMac(mac: string): boolean {
+  const cleanMac = mac.replace(MAC_STRIP_REGEX, "");
+  return cleanMac.length === 12 && MAC_VALID_REGEX.test(cleanMac);
+}
 
 const DEFAULT_CONFIG: DeviceConfig = {
   name: "",
@@ -76,40 +81,36 @@ export default function WakeOnLanScreen() {
     }
   };
 
-  const handleSave = async () => {
-    const mac = config.mac.replace(MAC_STRIP_REGEX, "");
-    if (mac.length !== 12 || !MAC_VALID_REGEX.test(mac)) {
+  const validateAndSaveMac = async (): Promise<string | null> => {
+    if (!validateMac(config.mac)) {
       setMacError("Invalid MAC address — use AA:BB:CC:DD:EE:FF");
-      return;
+      return null;
     }
     setMacError("");
     const normalized = normalizeMac(config.mac);
     const updatedConfig = { ...config, mac: normalized };
     setConfig(updatedConfig);
     await saveConfig(updatedConfig);
+    return normalized;
+  };
+
+  const handleSave = async () => {
+    const normalized = await validateAndSaveMac();
+    if (normalized === null) {
+      return;
+    }
     showStatus("success", "Config saved!");
   };
 
   const handleWake = async () => {
-    const mac = config.mac.replace(MAC_STRIP_REGEX, "");
-    if (mac.length !== 12 || !MAC_VALID_REGEX.test(mac)) {
-      setMacError("Invalid MAC address — use AA:BB:CC:DD:EE:FF");
+    const normalized = await validateAndSaveMac();
+    if (normalized === null) {
       return;
     }
-    setMacError("");
-
-    const normalized = normalizeMac(config.mac);
-    const updatedConfig = { ...config, mac: normalized };
-    setConfig(updatedConfig);
-    await saveConfig(updatedConfig);
 
     showStatus("sending", "Sending magic packet…");
     try {
-      await sendWakePacket(
-        updatedConfig.broadcastAddress,
-        updatedConfig.port,
-        normalized
-      );
+      await sendWakePacket(config.broadcastAddress, config.port, normalized);
       showStatus("success", "Magic packet sent!");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Network error";

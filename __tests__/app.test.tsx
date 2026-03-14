@@ -2,11 +2,17 @@
  * @format
  */
 
-import { create } from "react-test-renderer";
+import { act, create } from "react-test-renderer";
 import App from "../app.tsx";
 
 test("renders correctly", () => {
-  const tree = create(<App />);
+  let tree: ReturnType<typeof create> | undefined;
+  act(() => {
+    tree = create(<App />);
+  });
   expect(tree).toBeDefined();
-  expect(tree.toJSON()).not.toBeNull();
+  expect(tree?.toJSON()).not.toBeNull();
+  act(() => {
+    tree?.unmount();
+  });
 });

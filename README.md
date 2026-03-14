@@ -39,6 +39,12 @@ A React Native app that sends [Wake-on-LAN](https://en.wikipedia.org/wiki/Wake-o
 
 Follow the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment) for Android development.
 
+**Note:** This project uses [Bun](https://bun.sh) as the package manager. Install it first:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
 ### Installation
 
 ```bash

@@ -89,9 +89,9 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 
 **React Native:**
 
-- Use `className` and `htmlFor` attributes (not `class` or `for`)
 - Use function components with hooks
 - Follow React Native-specific patterns for navigation, storage, etc.
+- Use accessibility props such as `accessibilityLabel`, `accessibilityLabelledBy`, `accessibilityRole`, and related accessibility-specific props
 
 **React19+:**
 
@@ -105,21 +105,27 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 - Avoid done callbacks in async tests - use async/await instead
 - Don't use `.only` or `.skip` in committed code
 - Keep test suites reasonably flat - avoid excessive `describe` nesting
+- Wrap `react-test-renderer` component creation in `act()` and unmount in cleanup — even simple renders fail in CI without it.
 
 ## When Biome Can't Help
 
 Biome's linter will catch most issues automatically. Focus your attention on:
 
 1. **Business logic correctness** - Biome can't validate your algorithms
-2. **Meaningful naming** - Use descriptive names for functions, variables, and types
+2. **Meaningful naming** - Use meaningful names for functions, variables, and types
 3. **Architecture decisions** - Component structure, data flow, and API design
 4. **Edge cases** - Handle boundary conditions and error states
 5. **User experience** - Accessibility, performance, and usability considerations
-6. **Documentation** - Add comments for complex logic, but prefer self-documenting code
 
 ---
 
 Most formatting and common issues are automatically fixed by Biome. Run `npm exec -- ultracite fix` before committing to ensure compliance.
+
+---
+
+## Documentation
+
+- Fenced code blocks in markdown require a language specifier (e.g., ` ```text ` or ` ```typescript `). Without it, markdownlint MD040 fires. Plain ASCII diagrams should use `text`.
 
 ---
 
@@ -137,4 +143,8 @@ Most formatting and common issues are automatically fixed by Biome. Run `npm exe
 
 ### Dependency Management
 
-- `package-lock.json` must be tracked in git for reproducible builds. Removing it breaks `npm install` determinism.
+- `bun.lockb` must be tracked in git for reproducible builds. Removing it breaks `bun install` determinism.
+
+### CI/CD
+
+- Every job that runs `bun` commands needs `oven-sh/setup-bun@v2` step — even if other setup steps exist (e.g., android-build job needs both Java and Bun).

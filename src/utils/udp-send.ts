@@ -1,4 +1,5 @@
-import UdpSocket from "react-native-udp";
+import UdpSockets from "react-native-udp";
+import type UdpSocket from "react-native-udp/lib/types/UdpSocket";
 import { buildMagicPacket } from "./magic-packet.ts";
 
 export function sendWakePacket(
@@ -7,18 +8,20 @@ export function sendWakePacket(
   macAddress: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const socket = UdpSocket.createSocket({ type: "udp4" });
-    const parsed = Number.parseInt(port, 10);
-    const portNum =
-      Number.isNaN(parsed) || parsed < 1 || parsed > 65_535 ? 9 : parsed;
     let packet: Buffer;
+    let socket: UdpSocket | null = null;
 
     try {
       packet = buildMagicPacket(macAddress);
+      socket = UdpSockets.createSocket({ type: "udp4" });
     } catch (e) {
       reject(e);
       return;
     }
+
+    const parsed = Number.parseInt(port, 10);
+    const portNum =
+      Number.isNaN(parsed) || parsed < 1 || parsed > 65_535 ? 9 : parsed;
 
     socket.once("error", (err: Error) => {
       socket.close();

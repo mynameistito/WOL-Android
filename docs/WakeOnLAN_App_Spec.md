@@ -121,7 +121,7 @@ npx react-native run-android
 
 The app has **one screen only**. No navigation library needed.
 
-```
+```text
 ┌─────────────────────────────┐
 │        Wake on LAN          │  ← App title / header
 ├─────────────────────────────┤
@@ -185,10 +185,10 @@ When user taps **Wake Up**:
 ```javascript
 function buildMagicPacket(macAddress) {
   // Normalize MAC — strip separators
-  const mac = macAddress.replace(/[:\-]/g, '');
+  const mac = macAddress.replace(/[:\-]/g, "");
 
   if (mac.length !== 12 || !/^[0-9A-Fa-f]+$/.test(mac)) {
-    throw new Error('Invalid MAC address');
+    throw new Error("Invalid MAC address");
   }
 
   // Convert MAC to byte array
@@ -211,26 +211,33 @@ function buildMagicPacket(macAddress) {
 ## 7. UDP Send Logic
 
 ```javascript
-import UdpSocket from 'react-native-udp';
+import UdpSocket from "react-native-udp";
 
 function sendWakePacket(broadcastAddress, port, macAddress) {
   return new Promise((resolve, reject) => {
-    const socket = UdpSocket.createSocket({ type: 'udp4', debug: true });
+    const socket = UdpSocket.createSocket({ type: "udp4", debug: true });
     const packet = buildMagicPacket(macAddress);
     const portNum = parseInt(port, 10) || 9;
 
-    socket.once('error', err => {
+    socket.once("error", (err) => {
       socket.close();
       reject(err);
     });
 
     socket.bind(0, () => {
       socket.setBroadcast(true);
-      socket.send(packet, 0, packet.length, portNum, broadcastAddress, err => {
-        socket.close();
-        if (err) reject(err);
-        else resolve();
-      });
+      socket.send(
+        packet,
+        0,
+        packet.length,
+        portNum,
+        broadcastAddress,
+        (err) => {
+          socket.close();
+          if (err) reject(err);
+          else resolve();
+        }
+      );
     });
   });
 }
@@ -267,7 +274,7 @@ interface DeviceConfig {
 
 ## 10. Component Structure
 
-```
+```text
 App.tsx
 └── WakeOnLanScreen.tsx
     ├── DeviceForm.tsx         ← All 5 input fields

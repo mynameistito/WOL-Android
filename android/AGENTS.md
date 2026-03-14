@@ -3,7 +3,7 @@
 ## SharedPreferences
 
 - `react-native-default-preference` stores all values as strings. In Kotlin, use `getString()` with `toIntOrNull()` — `getInt()` throws `ClassCastException` on string values.
-- `SharedPreferences.apply()` is async. Widget updates after `apply()` may read stale data — pass values directly or update in the background thread after write completes.
+- `SharedPreferences.apply()` is async on disk but updates in-memory immediately. Same-process readers (like widgets) see new values right away — no need to pass values directly. The disk flush is async only.
 
 ## AppWidget
 
@@ -19,3 +19,5 @@
 - `DatagramSocket` should be closed in a `finally` block, not just on success. Use `use` extension or try/finally.
 - Catch `IOException` specifically for network errors, not generic `Exception`. Other exceptions should propagate.
 - Validate MAC address format (12 hex chars) before parsing. `String.toInt(16)` throws on invalid hex.
+- For hex validation, `String.digitToIntOrNull(16)` alone is sufficient — `isLetterOrDigit()` is redundant.
+- Widget updates from background threads require callbacks. Pass a lambda to the background function and invoke `runOnUiThread` or update directly since widget runs on main looper.
