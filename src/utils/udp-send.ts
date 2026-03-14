@@ -1,6 +1,6 @@
 import UdpSockets from "react-native-udp";
 import type UdpSocket from "react-native-udp/lib/types/UdpSocket";
-import { buildMagicPacket } from "./magic-packet.ts";
+import { buildMagicPacket } from "@/utils/magic-packet.ts";
 
 export function sendWakePacket(
   broadcastAddress: string,
