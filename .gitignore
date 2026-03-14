@@ -66,6 +66,9 @@ yarn-error.log
 # testing
 /coverage
 
+# Leftover subfolder from initial repo structure
+WakeOnLan/
+
 # Yarn
 .yarn/*
 !.yarn/patches
