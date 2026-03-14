@@ -13,20 +13,23 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class WolWakeReceiver : BroadcastReceiver() {override fun onReceive(context: Context, intent: Intent) {
+class WolWakeReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != WolWidget.ACTION_WAKE) return
-val widgetId = intent.getIntExtra(
+        val widgetId = intent.getIntExtra(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID,
         )
         val prefs = context.getSharedPreferences(WolWidget.PREFS_NAME, Context.MODE_PRIVATE)
         val mac = prefs.getString("wol_mac", null)
-if (mac.isNullOrEmpty()) return
-val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
+        if (mac.isNullOrEmpty()) return
+        val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
+val pendingResult = goAsync()
         sendWakePacket(context, prefs, currentTime) { success ->
             if (success) {
                 WolWidget.updateWidgetStatic(context, widgetId, currentTime)
             }
+            pendingResult.finish()
         }
     }
 private fun sendWakePacket(

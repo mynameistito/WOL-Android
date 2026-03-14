@@ -14,7 +14,7 @@ class WolWidget : AppWidgetProvider() {companion object {
 fun updateWidgetStatic(context: Context, widgetId: Int, lastWokenOverride: String?) {
             val manager = AppWidgetManager.getInstance(context)
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val deviceName = prefs.getString("wol_name", "No device saved") ?: "No device saved"
+            val deviceName = prefs.getString("wol_name", context.getString(R.string.widget_no_device)) ?: context.getString(R.string.widget_no_device)
             val lastWoken = lastWokenOverride ?: prefs.getString("wol_last_woken", "") ?: ""
 val views = RemoteViews(context.packageName, R.layout.wol_widget)
             views.setTextViewText(R.id.widget_device_name, deviceName)
