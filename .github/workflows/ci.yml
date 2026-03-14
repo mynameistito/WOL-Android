@@ -39,7 +39,7 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-bun-
-      - uses: actions/setup-java@c5195efecf7bdfc987ee0bae72271e28d5e2365c # v4.2.2
+      - uses: actions/setup-java@6a0805fcefea3d4657a47ac4c165951e33482018 # v4.2.2
         with:
           distribution: "temurin"
           java-version: "17"
