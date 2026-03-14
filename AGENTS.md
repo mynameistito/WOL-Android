@@ -143,7 +143,7 @@ Most formatting and common issues are automatically fixed by Biome. Run `npm exe
 
 ### Dependency Management
 
-- `bun.lockb` must be tracked in git for reproducible builds. Removing it breaks `bun install` determinism.
+- This project uses `bun.lock` (text format), not `bun.lockb`. CI cache keys must hash `bun.lock` to actually rotate when dependencies change.
 - `@types/*` packages belong in `devDependencies`, not `dependencies`. They're compile-time only.
 - Pin dev snapshot versions (e.g., `7.0.0-dev.20260313.1`) without `^` prefix — snapshots are mutable and can break reproducibility.
 

@@ -23,6 +23,10 @@
 
 - Widget labels should use string resources (`@string/...`) not hardcoded text for localization support.
 
+## BroadcastReceiver
+
+- `goAsync()` must be paired with `pendingResult.finish()` on **every** code path. If a callback has early returns, ensure `finish()` is called even when skipping the main work — otherwise the pending result leaks and Android eventually kills the process.
+
 ## Network Operations
 
 - `DatagramSocket` should be closed in a `finally` block, not just on success. Use `use` extension or try/finally.

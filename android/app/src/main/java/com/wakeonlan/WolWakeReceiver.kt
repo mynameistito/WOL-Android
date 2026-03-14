@@ -38,7 +38,7 @@ private fun sendWakePacket(
         currentTime: String,
         onComplete: (Boolean) -> Unit,
     ) {
-        val mac = prefs.getString("wol_mac", null) ?: return
+        val mac = prefs.getString("wol_mac", null)!!
         val broadcast = prefs.getString("wol_broadcastAddress", "255.255.255.255") ?: "255.255.255.255"
         val port = prefs.getString("wol_port", "9")?.toIntOrNull() ?: 9
 Thread {
