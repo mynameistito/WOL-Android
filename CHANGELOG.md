@@ -1,5 +1,11 @@
 # WakeOnLan
 
+## 2.0.3
+
+### Patch Changes
+
+- 1970f4a: Configure @/ import aliases for cleaner imports
+
 ## 2.0.2
 
 ### Patch Changes

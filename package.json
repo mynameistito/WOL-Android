@@ -1,6 +1,6 @@
 {
   "name": "wake-on-lan",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
