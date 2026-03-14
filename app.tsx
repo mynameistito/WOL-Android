@@ -1,5 +1,5 @@
 import { StatusBar } from "react-native";
-import WakeOnLanScreen from "./src/screens/wake-on-lan-screen";
+import WakeOnLanScreen from "@/screens/wake-on-lan-screen.tsx";
 
 export default function App() {
   return (

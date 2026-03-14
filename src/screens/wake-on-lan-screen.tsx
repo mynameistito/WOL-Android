@@ -8,15 +8,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DeviceForm from "../components/device-form.tsx";
+import DeviceForm from "@/components/device-form.tsx";
 import StatusIndicator, {
   type Status,
-} from "../components/status-indicator.tsx";
-import WakeButton from "../components/wake-button.tsx";
-import type { DeviceConfig } from "../types.ts";
-import { normalizeMac } from "../utils/magic-packet.ts";
-import { loadConfig, saveConfig } from "../utils/storage.ts";
-import { sendWakePacket } from "../utils/udp-send.ts";
+} from "@/components/status-indicator.tsx";
+import WakeButton from "@/components/wake-button.tsx";
+import type { DeviceConfig } from "@/types.ts";
+import { normalizeMac } from "@/utils/magic-packet.ts";
+import { loadConfig, saveConfig } from "@/utils/storage.ts";
+import { sendWakePacket } from "@/utils/udp-send.ts";
 
 const MAC_STRIP_REGEX = /[:-]/g;
 const MAC_VALID_REGEX = /^[0-9A-Fa-f]+$/;

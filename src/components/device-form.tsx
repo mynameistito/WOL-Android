@@ -5,7 +5,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import type { DeviceConfig } from "../types.ts";
+import type { DeviceConfig } from "@/types.ts";
 
 interface Props {
   config: DeviceConfig;
