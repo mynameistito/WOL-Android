@@ -30,8 +30,11 @@ export function buildMagicPacket(macAddress: string): Buffer {
   return Buffer.from(packet);
 }
 
-/** Normalizes MAC to AA:BB:CC:DD:EE:FF format */
+/** Normalizes MAC to AA:BB:CC:DD:EE:FF format. Returns original input if invalid. */
 export function normalizeMac(mac: string): string {
   const clean = mac.replace(MAC_STRIP_REGEX, "").toUpperCase();
+  if (clean.length !== 12 || !MAC_VALID_REGEX.test(clean)) {
+    return mac;
+  }
   return clean.match(MAC_PAIR_REGEX)?.join(":") ?? mac;
 }

@@ -24,12 +24,12 @@ A React Native app that sends [Wake-on-LAN](https://en.wikipedia.org/wiki/Wake-o
 
 ## Requirements
 
-| Tool | Version |
-|------|---------|
-| Node.js | >= 22.11.0 |
-| React Native | 0.84 |
-| React | 19 |
-| Android | 7.0+ (widget), 5.0+ (app) |
+| Tool         | Version       |
+| ------------ | ------------- |
+| Node.js      | >= 22.11.0    |
+| React Native | 0.84          |
+| React        | 19            |
+| Android      | 7.0+ (API 24) |
 
 ---
 
@@ -44,26 +44,26 @@ Follow the [React Native environment setup](https://reactnative.dev/docs/set-up-
 ```bash
 git clone https://github.com/mynameistito/WOL-Android.git
 cd WOL-Android
-npm install
+bun install
 ```
 
 ### Running on Android
 
 ```bash
-npm run android
+bun run android
 ```
 
 Or start Metro separately and connect from Android Studio:
 
 ```bash
-npm start
+bun start
 ```
 
 ---
 
 ## Project Structure
 
-```
+```text
 src/
 ├── components/
 │   ├── device-form.tsx       # Input fields for device configuration
@@ -84,6 +84,7 @@ src/
 The home screen widget (`android/app/src/main/java/com/wakeonlan/WolWidget.kt`) reads device config from SharedPreferences (written by the app on every save) and sends a magic packet directly when tapped — no need to open the app.
 
 **Requirements:**
+
 - Android 7.0+ (API 24)
 - The app must be installed and the device config saved at least once before the widget works
 
@@ -96,8 +97,8 @@ The home screen widget (`android/app/src/main/java/com/wakeonlan/WolWidget.kt`) 
 This project uses [Ultracite](https://github.com/haydenbleasel/ultracite) (powered by Biome):
 
 ```bash
-npm run check   # Check for issues
-npm run fix     # Auto-fix issues
+bun run check   # Check for issues
+bun run fix     # Auto-fix issues
 ```
 
 ### Versioning
@@ -105,14 +106,14 @@ npm run fix     # Auto-fix issues
 Versioning is managed with [Changesets](https://github.com/changesets/changesets):
 
 ```bash
-npm run changeset   # Create a new changeset
-npm run version     # Bump versions and update CHANGELOG
+bun run changeset   # Create a new changeset
+bun run version     # Bump versions and update CHANGELOG
 ```
 
 ### Testing
 
 ```bash
-npm test
+bun run test
 ```
 
 ---
@@ -133,8 +134,8 @@ For a signed release build, configure your keystore in `android/app/build.gradle
 ## Contributing
 
 1. Fork the repo and create a feature branch
-2. Make your changes and run `npm run check` to ensure lint passes
-3. Add a changeset: `npm run changeset`
+2. Make your changes and run `bun run check` to ensure lint passes
+3. Add a changeset: `bun run changeset`
 4. Open a pull request
 
 ---

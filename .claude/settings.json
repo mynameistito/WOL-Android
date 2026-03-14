@@ -1,34 +1,12 @@
 {
   "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"C:\\Users\\mynameistito\\.claude\\notifications\\notify.ps1\" notification"
-          }
-        ],
-        "matcher": ""
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"C:\\Users\\mynameistito\\.claude\\notifications\\notify.ps1\" stop"
-          }
-        ],
-        "matcher": ""
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "npm run fix -- --skip=correctness/noUnusedImports"
+            "command": "bun run fix"
           }
         ]
       }

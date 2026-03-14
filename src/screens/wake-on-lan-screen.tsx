@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import DeviceForm from "../components/device-form";
-import StatusIndicator, { type Status } from "../components/status-indicator";
-import WakeButton from "../components/wake-button";
-import type { DeviceConfig } from "../types";
-import { normalizeMac } from "../utils/magic-packet";
-import { loadConfig, saveConfig } from "../utils/storage";
-import { sendWakePacket } from "../utils/udp-send";
+import DeviceForm from "../components/device-form.tsx";
+import StatusIndicator, {
+  type Status,
+} from "../components/status-indicator.tsx";
+import WakeButton from "../components/wake-button.tsx";
+import type { DeviceConfig } from "../types.ts";
+import { normalizeMac } from "../utils/magic-packet.ts";
+import { loadConfig, saveConfig } from "../utils/storage.ts";
+import { sendWakePacket } from "../utils/udp-send.ts";
 
 const MAC_STRIP_REGEX = /[:-]/g;
 const MAC_VALID_REGEX = /^[0-9A-Fa-f]+$/;
@@ -34,11 +36,15 @@ export default function WakeOnLanScreen() {
   const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    loadConfig().then((saved) => {
-      if (saved) {
-        setConfig(saved);
-      }
-    });
+    loadConfig()
+      .then((saved) => {
+        if (saved) {
+          setConfig(saved);
+        }
+      })
+      .catch(() => {
+        // Silently fall back to defaults on load failure
+      });
     return () => {
       if (clearTimer.current) {
         clearTimeout(clearTimer.current);
@@ -62,10 +68,12 @@ export default function WakeOnLanScreen() {
     if (clearTimer.current) {
       clearTimeout(clearTimer.current);
     }
-    clearTimer.current = setTimeout(() => {
-      setStatus("idle");
-      setStatusMessage("");
-    }, 5000);
+    if (s !== "sending") {
+      clearTimer.current = setTimeout(() => {
+        setStatus("idle");
+        setStatusMessage("");
+      }, 5000);
+    }
   };
 
   const handleSave = async () => {

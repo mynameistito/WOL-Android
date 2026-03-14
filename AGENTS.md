@@ -87,16 +87,15 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 
 ### Framework-Specific Guidance
 
-**Next.js:**
-- Use Next.js `<Image>` component for images
-- Use `next/head` or App Router metadata API for head elements
-- Use Server Components for async data fetching instead of async Client Components
+**React Native:**
 
-**React 19+:**
+- Use `className` and `htmlFor` attributes (not `class` or `for`)
+- Use function components with hooks
+- Follow React Native-specific patterns for navigation, storage, etc.
+
+**React19+:**
+
 - Use ref as a prop instead of `React.forwardRef`
-
-**Solid/Svelte/Vue/Qwik:**
-- Use `class` and `for` attributes (not `className` or `htmlFor`)
 
 ---
 
@@ -121,3 +120,21 @@ Biome's linter will catch most issues automatically. Focus your attention on:
 ---
 
 Most formatting and common issues are automatically fixed by Biome. Run `npm exec -- ultracite fix` before committing to ensure compliance.
+
+---
+
+## Project-Specific Notes
+
+### React Native Setup
+
+- `metro.config.js` is CommonJS. Use `__dirname` — `import.meta.dirname` only works in ESM.
+- Minimum Android is 7.0 (API 24), not 5.0. The widget requires API 24+.
+
+### Pre-commit Hooks
+
+- Lefthook globs `**/*.js` miss root-level files. Include both `*.js` and `**/*.js` patterns.
+- Use `{staged_files}` in run commands to avoid formatting unrelated files.
+
+### Dependency Management
+
+- `package-lock.json` must be tracked in git for reproducible builds. Removing it breaks `npm install` determinism.

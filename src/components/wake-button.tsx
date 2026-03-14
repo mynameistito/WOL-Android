@@ -14,6 +14,8 @@ interface Props {
 export default function WakeButton({ onPress, sending }: Props) {
   return (
     <TouchableOpacity
+      accessibilityLabel="Wake button"
+      accessibilityState={{ disabled: sending }}
       activeOpacity={0.8}
       disabled={sending}
       onPress={onPress}

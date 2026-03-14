@@ -2,11 +2,11 @@
  * @format
  */
 
-import ReactTestRenderer from "react-test-renderer";
-import App from "../app";
+import { create } from "react-test-renderer";
+import App from "../app.tsx";
 
-test("renders correctly", async () => {
-  await ReactTestRenderer.act(() => {
-    ReactTestRenderer.create(<App />);
-  });
+test("renders correctly", () => {
+  const tree = create(<App />);
+  expect(tree).toBeDefined();
+  expect(tree.toJSON()).not.toBeNull();
 });

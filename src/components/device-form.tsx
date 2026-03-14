@@ -5,7 +5,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import type { DeviceConfig } from "../types";
+import type { DeviceConfig } from "../types.ts";
 
 interface Props {
   config: DeviceConfig;
@@ -43,7 +43,7 @@ const FIELDS: FieldSpec[] = [
     key: "broadcastAddress",
     label: "Broadcast Address",
     placeholder: "192.168.1.255",
-    keyboardType: "numeric",
+    keyboardType: "decimal-pad",
     autoCapitalize: "none",
   },
   {
@@ -56,7 +56,7 @@ const FIELDS: FieldSpec[] = [
     key: "ipAddress",
     label: "IP Address",
     placeholder: "192.168.1.100 (optional)",
-    keyboardType: "numeric",
+    keyboardType: "decimal-pad",
     autoCapitalize: "none",
     optional: true,
   },

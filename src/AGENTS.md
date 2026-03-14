@@ -1,0 +1,14 @@
+# React Native Source Notes
+
+## Async Storage
+
+- `JSON.parse()` throws on corrupted data. Wrap in try-catch and return `null` to fall back to defaults.
+- Status timers should skip terminal states (`idle`, `success`, `error`) — not `sending`. Auto-clearing during an active operation re-enables buttons prematurely.
+
+## Keyboard Types
+
+- `keyboardType="numeric"` shows only digits on Android. Use `"decimal-pad"` for IP address inputs (needs `.` separator).
+
+## MAC Address Handling
+
+- `normalizeMac()` should validate length (12 chars after stripping) before formatting. Invalid input should return the original string, not malformed output.

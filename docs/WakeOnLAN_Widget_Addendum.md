@@ -1,4 +1,5 @@
 # Wake on LAN — Widget Addendum
+
 > Append this to the main WakeOnLAN_App_Spec.md and include it in your Claude Code prompt.
 
 ---
@@ -8,7 +9,8 @@
 Add an Android home screen widget that displays the saved device name and a single large **Power** button. Tapping it sends the magic packet immediately — no need to open the app.
 
 ### Widget Preview
-```
+
+```text
 ┌─────────────────────────┐
 │  ⚡ Wake on LAN         │
 │  Gaming PC              │
@@ -42,7 +44,7 @@ npm install react-native-default-preference
 
 ## Data Sharing Architecture
 
-```
+```text
 React Native App (JS)
   └── saves config via react-native-default-preference
         └── writes to SharedPreferences (file: com.wakeonlan_preferences.xml)
@@ -146,6 +148,7 @@ android/app/src/main/
 ```
 
 Also create a widget background drawable:
+
 ```xml
 <!-- android/app/src/main/res/drawable/widget_background.xml -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
@@ -193,24 +196,30 @@ class WolWidget : AppWidgetProvider() {
         }
     }
 
-    override fun onReceive(context: Context, intent: Intent) {
+override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_WAKE) {
             val widgetId = intent.getIntExtra(
                 AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID
             )
-            sendWakePacket(context)
-            // Update last woken time
+            val currentTime = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
+            sendWakePacket(context, currentTime)
             val manager = AppWidgetManager.getInstance(context)
-            updateWidget(context, manager, widgetId)
+            // Pass currentTime so widget shows timestamp immediately
+            updateWidget(context, manager, widgetId, currentTime)
         }
     }
 
-    private fun updateWidget(context: Context, manager: AppWidgetManager, widgetId: Int) {
+    private fun updateWidget(
+        context: Context,
+        manager: AppWidgetManager,
+        widgetId: Int,
+        lastWokenOverride: String? = null
+    ) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val deviceName = prefs.getString("wol_name", "No device saved") ?: "No device saved"
-        val lastWoken = prefs.getString("wol_last_woken", "") ?: ""
+        val lastWoken = lastWokenOverride ?: prefs.getString("wol_last_woken", "") ?: ""
 
         val views = RemoteViews(context.packageName, R.layout.wol_widget)
         views.setTextViewText(R.id.widget_device_name, deviceName)
@@ -233,11 +242,12 @@ class WolWidget : AppWidgetProvider() {
         manager.updateAppWidget(widgetId, views)
     }
 
-    private fun sendWakePacket(context: Context) {
+    private fun sendWakePacket(context: Context, currentTime: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val mac = prefs.getString("wol_mac", null) ?: return
         val broadcast = prefs.getString("wol_broadcastAddress", "255.255.255.255") ?: "255.255.255.255"
-        val port = prefs.getInt("wol_port", 9)
+        // react-native-default-preference stores all values as Strings
+        val port = prefs.getString("wol_port", "9")?.toIntOrNull() ?: 9
 
         Thread {
             try {
@@ -259,7 +269,7 @@ class WolWidget : AppWidgetProvider() {
 
                 // Save last woken timestamp
                 val time = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
-                prefs.edit().putString("wol_last_woken", time).apply()
+                prefs.edit().putString("wol_last_woken", currentTime).apply()
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -326,16 +336,52 @@ export async function loadConfig(): Promise<DeviceConfig | null> {
 
 ## 6. Widget Triggers Widget Refresh After App Save
 
-After saving config in the app, broadcast a widget update so it refreshes immediately:
+After saving config in the app, you should trigger a widget refresh so it displays the new device name immediately:
 
 ```typescript
 // In WakeOnLanScreen.tsx, after saveConfig():
 import { NativeModules } from 'react-native';
 
-// RN doesn't have a built-in widget refresh — the widget auto-updates
-// when SharedPreferences changes. No extra step needed.
-// The widget reads fresh prefs on every tap anyway.
+// After saving config,refresh the widget
+NativeModules.WolWidgetModule?.refreshWidget();
 ```
+
+You'll need to add a native module in WolWidget.kt:
+
+```kotlin
+companion object {
+    fun updateAllWidgets(context: Context) {
+        val manager = AppWidgetManager.getInstance(context)
+        val ids = manager.getAppWidgetIds(
+            android.content.ComponentName(context, WolWidget::class.java)
+        )
+        for (id in ids) {
+            updateWidget(context, manager, id)
+        }
+    }
+}
+```
+
+And create WolWidgetModule.kt as a React Native bridge:
+
+```kotlin
+package com.wakeonlan
+
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+
+class WolWidgetModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+    override fun getName() = "WolWidgetModule"
+
+    @ReactMethod
+    fun refreshWidget() {
+        WolWidget.updateAllWidgets(reactApplicationContext)
+    }
+}
+```
+
+**Note:** AppWidgets do NOT auto-refresh when SharedPreferences changes. You must call `AppWidgetManager.updateAppWidget()` explicitly.
 
 ---
 

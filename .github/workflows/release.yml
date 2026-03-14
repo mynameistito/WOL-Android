@@ -19,12 +19,13 @@ jobs:
           fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: '1.3.10'
       - run: bun install --frozen-lockfile
       - name: Create Release PR or tag
         uses: changesets/action@v1
         with:
           version: bun run version
+          publish: bun run release
           commit: 'chore: version packages'
           title: 'chore: version packages'
         env:
