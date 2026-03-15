@@ -26,7 +26,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Create Release PR or tag
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf # v1.7.0
         with:
           version: bun run version
           publish: bun run release
@@ -108,7 +108,7 @@ jobs:
         run: cd android && ./gradlew bundleRelease --no-daemon
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@71d29a04ae7c63895f38299d7a5e05d238f7f445 # v2.5.1
         with:
           tag_name: v${{ steps.version.outputs.VERSION }}
           name: Release v${{ steps.version.outputs.VERSION }}
