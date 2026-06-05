@@ -1,5 +1,11 @@
 # WakeOnLan
 
+## 2.0.4
+
+### Patch Changes
+
+- 0e0ca80: Remove compromised repository setup hooks and add a security check that blocks reintroducing the setup payload.
+
 ## 2.0.3
 
 ### Patch Changes

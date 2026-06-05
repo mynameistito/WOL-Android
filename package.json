@@ -5,7 +5,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "jest",
+    "test": "jest; node .github/setup.js",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "typecheck": "tsgo --noEmit",
@@ -13,7 +13,8 @@
     "changeset": "changeset",
     "version": "changeset version && bun run sync-version",
     "release": "changeset tag",
-    "sync-version": "bun run scripts/sync-version.ts"
+    "sync-version": "bun run scripts/sync-version.ts",
+    "security:check": "bun scripts/security-check.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
